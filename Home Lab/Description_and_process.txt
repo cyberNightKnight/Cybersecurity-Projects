@@ -1,1 +1,85 @@
+-- Overview --
 
+This home lab consists of a honeypot placed inside a virtual machine in order to record attacks. These attacks will then be analyzed by a SIEM (Security Information and Event Management) and mapped.
+
+* Might add SOAR functionalities
+
+
+
+-- Steps --
+
+1. Create an Virtual Machine
+
+  *To do this, we first need to have an Azure account. In this case the account was created using a free subscription.
+
+
+  --- a. Create a Resource Group: ---
+
+    > Resource Groups > +Create > Input the required data (used the location 2 of the Region) > Review + Create
+
+
+ --- b. Create a Virtual Network (VNet): ---
+    > Virtual Networks > +Create > Add VNet name and nsure the Region is the same as the Resource Group > Review + create
+      * We leave all other configurations as default for Security, IP addresses, and Tags, but it's useful to see how the VNet will be 
+
+  --- c. Create the VM: ---
+
+    > Virtual machines > +Create > Virtual machine > Add the Resource Group and name the VM
+      * It's not recommended for the VM to be called in a similar way as the rest because the attackers might see it. So, I called it something similar to what a business would call it (ADMON-NET-WEST-2).
+
+  > Availability: No redundancy required > Security Type: Standard > Image: Windows 10 Enterprise, version 22H2 - x64 Gen2(free services eligible) > Size: Standard_D2s_v3
+
+ > Set username and password > Check licensing agreement
+
+
+  > Next > Disk: Standard HDD for lower cost
+  
+  > Next > Network: Check Delete public IP and NC when VM is deleted
+  
+  > Skip management config > Monitoring: Disable Boot diagnostics > Review + create
+
+
+  --- d. Add NSG (firewall) rule to allow ANY traffic in Azure ---
+
+    > Resource Groups > Resource that ends with 'nsg'
+      For inbound rules, only the Remote Desktop Protocol is initially allowed
+
+    > Delete inbound rule with 300 - RDP > Settings > Inbound security rules > +ADD > Change Destination Port to '*' (ANY) and name it > ADD
+
+  --- e. Disable internal Windows firewall ---
+
+    > Virtual machines > Click VM > In Windows App (computer app) > Add PC > Name: Public IP
+    > wf.msc (Windows Defender) > Windows Defender Firewall Properties > Turn all firewall 'Profile' states Off > Apply > Ok
+
+    > Ping the public IP
+
+    Now the VM is open and reachable :)
+
+NOTE: If we try to access with wrong credentials, we can see those logs in Event Viewer>Security
+
+2. Forward logs to Azure
+
+  --- a. Create Log analytics workspace ---
+    > Log Analytics Workspaces > +Create > Fill in the required parameters
+
+    > Microsoft Sentinel (SIEM) > +Create > Link to LAW
+      *Now the log workspace will be linked to the SIEM
+
+  To connect VM to LAW through Sentinel...
+    In Sentinel > Content Management > Content Hub > Install Windows Security Events > Manage Windows Security Events > Check WSE via AMA (Azure Monitoring Agent) > Open Connector Page > Create data collection rule to forward the logs and grant them access to the SIEM > Resources: VM > Leave the next tabs as they are > Create
+    *Simultaneously, we can see in the VM interface that the Connector is being installed
+
+
+    To see logs:
+      > In Logs Analysitcs Workspace > Logs > Tables > Search 'SecurityEvent'
+        * Set to KQL mode
+        * To only see certain parameters, use '| project {list of params}', or to only get a certain user, '| where Account == '{acount name}''
+        *To search the location of an address: https://ipinfo.io/{ip address}
+
+3. Link IP address to country
+  a. Upload .csv file with IP-location equivalences to Azure
+    > In Sentinel > Our Sentinel instance > Configuration > Watchlist...it will redirect to Defender. There, go to Microsoft Sentinel > Configuration > Watchlist > +New > Name & Alias: geoip > Source: Drop the file, Search key: network > Review + Create
+  *To see watchlist from LAW, '_GetWatchlist("watchlist name")'
+-- References --
+
+'Cyber Home Lab from ZERO and Catch Attackers! Free, Easy, and REAL (Microsoft Sentinel 2025) by Josh Madajor - 'https://www.youtube.com/watch?v=g5JL2RIbThM
