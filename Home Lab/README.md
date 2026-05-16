@@ -80,6 +80,43 @@ NOTE: If we try to access with wrong credentials, we can see those logs in Event
   a. Upload .csv file with IP-location equivalences to Azure
     > In Sentinel > Our Sentinel instance > Configuration > Watchlist...it will redirect to Defender. There, go to Microsoft Sentinel > Configuration > Watchlist > +New > Name & Alias: geoip > Source: Drop the file, Search key: network > Review + Create
   *To see watchlist from LAW, '_GetWatchlist("watchlist name")'
+
+  In KQL (LAW), to search for the location of the IP : let GeoIPWatch = _GetWatchlist('geoip');
+      '''  let WindowsEvents = SecurityEvent 
+        | where IpAddress  == '{ip address}'
+        | where  EventID == 4625
+        | order by TimeGenerated desc
+        | evaluate ipv4_lookup(GeoIPWatch, IpAddress, network);
+        WindowsEvents
+        | project  TimeGenerated, Computer, AttackerIp = IpAddress, cityname, countryname, latitude, longitude'''
+
+
+4. Create the map
+ > In Sentinel > Threat management > Workbooks > Add workbook > Edit > Remove all elements > Copy map.json from the description > Add query/Add data source + visualization > Advanced editor and paste the data > Done editing (at the top)
+
+
+5. Added percentages per country:
+(Pie chart)
+   let GeoIPDB_FULL = _GetWatchlist("geoip");
+   let TotalEvents = toscalar(
+       SecurityEvent
+       | where EventID == 4625
+       | count
+   );
+   SecurityEvent
+   | where EventID == 4625
+   | evaluate ipv4_lookup(GeoIPDB_FULL, IpAddress, network)
+   | summarize FailureCount = count() by countryname
+   | extend Percentage = round(todouble(FailureCount) / todouble(TotalEvents) * 100, 2)
+   | project country = tostring(countryname), Percentage
+   | order by Percentage desc
+
+
+6. Generate incidents
+
+  > Sentinel > Configuration > Analytics > Create Scheduled Query Rule > 
+
 -- References --
 
 'Cyber Home Lab from ZERO and Catch Attackers! Free, Easy, and REAL (Microsoft Sentinel 2025) by Josh Madajor - 'https://www.youtube.com/watch?v=g5JL2RIbThM
+ Generating incidents (Microsoft): https://learn.microsoft.com/en-us/azure/sentinel/create-incidents-from-alerts
