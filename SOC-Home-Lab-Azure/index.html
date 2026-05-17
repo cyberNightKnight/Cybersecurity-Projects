@@ -2,82 +2,102 @@
 <html>
   <head>
     <title>SOC Home Lab 1</title>
-    <h2>Written by: cyberNightKnight</h2>
+    <h1>SOC Home Lab 1</h1>
+    <h3>Written by: cyberNightKnight</h3>
   </head>
--- Overview --
+<hr>
+<div>
+  <h2>-- Overview --</h2>
 
-This lab consisted of setting up a honeypot in Azure and using the virtual machine's logs to build a map based on where the attackers' IP addresses were from. Additionally, I added an interface that showed the percentage of attacks from each region and an incident generation rule.
+<p>This lab consisted of setting up a honeypot in Azure and using the virtual machine's logs to build a map based on where the attackers' IP addresses were from. Additionally, I added an interface that showed the percentage of attacks from each region and an incident generation rule.</p>
+</div>
+<div>
 
+<h2> -- Steps -- </h2>
+<ol>
+<div>
+ 
+<li>Create an Virtual Machine</li>
 
--- Steps --
+<p>** To do this, we first need to have an Azure account. In this case the account was created using a free subscription. **</p>
 
-1. Create an Virtual Machine
+<ol type="a">
+  <li>Create a Resource Group</li>
 
-*To do this, we first need to have an Azure account. In this case the account was created using a free subscription.
+<p> Resource Groups > +Create > Input the required data (used the location 2 of the Region) > Review + Create</p>
 
+<li>Create a Virtual Network (VNet)</li> 
+  <p> Virtual Networks > +Create > Add VNet name and nsure the Region is the same as the Resource Group > Review + create * We leave all other configurations as default for Security, IP addresses, and Tags, but it's useful to see how the VNet will be</p>
 
---- a. Create a Resource Group: ---
+<li>Create the VM</li>
 
-> Resource Groups > +Create > Input the required data (used the location 2 of the Region) > Review + Create
---- b. Create a Virtual Network (VNet): --- > Virtual Networks > +Create > Add VNet name and nsure the Region is the same as the Resource Group > Review + create * We leave all other configurations as default for Security, IP addresses, and Tags, but it's useful to see how the VNet will be
-
---- c. Create the VM: ---
-
-> Virtual machines > +Create > Virtual machine > Add the Resource Group and name the VM
+<p>> Virtual machines > +Create > Virtual machine > Add the Resource Group and name the VM
   * It's not recommended for the VM to be called in a similar way as the rest because the attackers might see it. So, I called it something similar to what a business would call it (ADMON-NET-WEST-2).
-Availability: No redundancy required > Security Type: Standard > Image: Windows 10 Enterprise, version 22H2 - x64 Gen2(free services eligible) > Size: Standard_D2s_v3
+Availability: No redundancy required > Security Type: Standard > Image: Windows 10 Enterprise, version 22H2 - x64 Gen2(free services eligible) > Size: Standard_D2s_v3</p>
 
-Set username and password > Check licensing agreement
+<p>Set username and password > Check licensing agreement</p>
 
-Next > Disk: Standard HDD for lower cost
+<p>Next > Disk: Standard HDD for lower cost</p>
 
-Next > Network: Check Delete public IP and NC when VM is deleted
+<p>Next > Network: Check Delete public IP and NC when VM is deleted</p>
 
-Skip management config > Monitoring: Disable Boot diagnostics > Review + create
+<p>Skip management config > Monitoring: Disable Boot diagnostics > Review + create</p>
 
---- d. Add NSG (firewall) rule to allow ANY traffic in Azure ---
+<li>Add NSG (firewall) rule to allow ANY traffic in Azure</li>
 
-> Resource Groups > Resource that ends with 'nsg'
-  For inbound rules, only the Remote Desktop Protocol is initially allowed
+<p>> Resource Groups > Resource that ends with 'nsg'</p>
+  <p>For inbound rules, only the Remote Desktop Protocol is initially allowed</p>
 
-> Delete inbound rule with 300 - RDP > Settings > Inbound security rules > +ADD > Change Destination Port to '*' (ANY) and name it > ADD
---- e. Disable internal Windows firewall ---
+<p>> Delete inbound rule with 300 - RDP > Settings > Inbound security rules > +ADD > Change Destination Port to '*' (ANY) and name it > ADD</p>
+<li>Disable internal Windows firewall</li>
 
-> Virtual machines > Click VM > In Windows App (computer app) > Add PC > Name: Public IP
-> wf.msc (Windows Defender) > Windows Defender Firewall Properties > Turn all firewall 'Profile' states Off > Apply > Ok
+<p>> Virtual machines > Click VM > In Windows App (computer app) > Add PC > Name: Public IP</p>
+<p>> wf.msc (Windows Defender) > Windows Defender Firewall Properties > Turn all firewall 'Profile' states Off > Apply > Ok</p>
 
-> Ping the public IP
+<p>> Ping the public IP</p>
 
-Now the VM is open and reachable :)
-NOTE: If we try to access with wrong credentials, we can see those logs in Event Viewer>Security
+<p>Now the VM is open and reachable :)</p>
+<p>NOTE: If we try to access with wrong credentials, we can see those logs in Event Viewer>Security</p>
+  </ol>
+</div>
+<div>
+<li>Forward logs to Azure</li>
+<ol type="a">
+<li>Create Log analytics workspace</li>
+  <p>> Log Analytics Workspaces > +Create > Fill in the required parameters</p>
 
-Forward logs to Azure
---- a. Create Log analytics workspace --- > Log Analytics Workspaces > +Create > Fill in the required parameters
+<p>> Microsoft Sentinel (SIEM) > +Create > Link to LAW</p>
+  <p>** Now the log workspace will be linked to the SIEM ** </p>
+<p>To connect VM to LAW through Sentinel... In Sentinel > Content Management > Content Hub > Install Windows Security Events > Manage Windows Security Events > Check WSE via AMA (Azure Monitoring Agent) > Open Connector Page > Create data collection rule to forward the logs and grant them access to the SIEM > Resources: VM > Leave the next tabs as they are > Create *Simultaneously, we can see in the VM interface that the Connector is being installed</p>
 
-> Microsoft Sentinel (SIEM) > +Create > Link to LAW
-  *Now the log workspace will be linked to the SIEM
-To connect VM to LAW through Sentinel... In Sentinel > Content Management > Content Hub > Install Windows Security Events > Manage Windows Security Events > Check WSE via AMA (Azure Monitoring Agent) > Open Connector Page > Create data collection rule to forward the logs and grant them access to the SIEM > Resources: VM > Leave the next tabs as they are > Create *Simultaneously, we can see in the VM interface that the Connector is being installed
+<p>To see logs:</p>
+  <p>> In Logs Analysitcs Workspace > Logs > Tables > Search 'SecurityEvent'</p>
+    <p>* Set to KQL mode</p>
+    <p>* To only see certain parameters, use '| project {list of params}', or to only get a certain user, '| where Account == '{acount name}''</p>
+    <p>*To search the location of an address: https://ipinfo.io/{ip address}</p>
+<p>IP address to country a. Upload .csv file with IP-location equivalences to Azure</p>
+<p>In Sentinel > Our Sentinel instance > Configuration > Watchlist...it will redirect to Defender. There, go to Microsoft Sentinel > Configuration > Watchlist > +New > Name & Alias: geoip > Source: Drop the file, Search key: network > Review + Create *To see watchlist from LAW, '_GetWatchlist("watchlist name")'</p>
 
-To see logs:
-  > In Logs Analysitcs Workspace > Logs > Tables > Search 'SecurityEvent'
-    * Set to KQL mode
-    * To only see certain parameters, use '| project {list of params}', or to only get a certain user, '| where Account == '{acount name}''
-    *To search the location of an address: https://ipinfo.io/{ip address}
-Link IP address to country a. Upload .csv file with IP-location equivalences to Azure
-In Sentinel > Our Sentinel instance > Configuration > Watchlist...it will redirect to Defender. There, go to Microsoft Sentinel > Configuration > Watchlist > +New > Name & Alias: geoip > Source: Drop the file, Search key: network > Review + Create *To see watchlist from LAW, '_GetWatchlist("watchlist name")'
+<p>In KQL (LAW), to search for the location of the IP : let GeoIPWatch = _GetWatchlist('geoip'); ''' let WindowsEvents = SecurityEvent | where IpAddress == '{ip address}' | where EventID == 4625 | order by TimeGenerated desc | evaluate ipv4_lookup(GeoIPWatch, IpAddress, network); WindowsEvents | project TimeGenerated, Computer, AttackerIp = IpAddress, cityname, countryname, latitude, longitude'''</p>
+</ol>
+</div>
+<div>
+<li>Create the map</li>
+<p>In Sentinel > Threat management > Workbooks > Add workbook > Edit > Remove all elements > Copy map.json from the description > Add query/Add data source + visualization > Advanced editor and paste the data > Done editing (at the top)</p>
 
-In KQL (LAW), to search for the location of the IP : let GeoIPWatch = _GetWatchlist('geoip'); ''' let WindowsEvents = SecurityEvent | where IpAddress == '{ip address}' | where EventID == 4625 | order by TimeGenerated desc | evaluate ipv4_lookup(GeoIPWatch, IpAddress, network); WindowsEvents | project TimeGenerated, Computer, AttackerIp = IpAddress, cityname, countryname, latitude, longitude'''
+<p>Added percentages per country: (Pie chart) let GeoIPDB_FULL = _GetWatchlist("geoip"); let TotalEvents = toscalar( SecurityEvent | where EventID == 4625 | count ); SecurityEvent | where EventID == 4625 | evaluate ipv4_lookup(GeoIPDB_FULL, IpAddress, network) | summarize FailureCount = count() by countryname | extend Percentage = round(todouble(FailureCount) / todouble(TotalEvents) * 100, 2) | project country = tostring(countryname), Percentage | order by Percentage desc</p>
 
-Create the map
-In Sentinel > Threat management > Workbooks > Add workbook > Edit > Remove all elements > Copy map.json from the description > Add query/Add data source + visualization > Advanced editor and paste the data > Done editing (at the top)
+<li>Generate incidents</li>
 
-Added percentages per country: (Pie chart) let GeoIPDB_FULL = _GetWatchlist("geoip"); let TotalEvents = toscalar( SecurityEvent | where EventID == 4625 | count ); SecurityEvent | where EventID == 4625 | evaluate ipv4_lookup(GeoIPDB_FULL, IpAddress, network) | summarize FailureCount = count() by countryname | extend Percentage = round(todouble(FailureCount) / todouble(TotalEvents) * 100, 2) | project country = tostring(countryname), Percentage | order by Percentage desc
+<p>Sentinel > Configuration > Analytics > Create Scheduled Query Rule ></p>
+</ol>
+</div>
+</div>
 
-Generate incidents
+<div>
+<h2>-- References --</h2>
 
-Sentinel > Configuration > Analytics > Create Scheduled Query Rule >
-
--- References --
-
-'Cyber Home Lab from ZERO and Catch Attackers! Free, Easy, and REAL (Microsoft Sentinel 2025) by Josh Madajor - 'https://www.youtube.com/watch?v=g5JL2RIbThM Generating incidents (Microsoft): https://learn.microsoft.com/en-us/azure/sentinel/create-incidents-from-alerts
+<p>'Cyber Home Lab from ZERO and Catch Attackers! Free, Easy, and REAL (Microsoft Sentinel 2025) by Josh Madajor - 'https://www.youtube.com/watch?v=g5JL2RIbThM</p> 
+<p>Generating incidents (Microsoft): https://learn.microsoft.com/en-us/azure/sentinel/create-incidents-from-alerts</p>
+</div>
 </html>
