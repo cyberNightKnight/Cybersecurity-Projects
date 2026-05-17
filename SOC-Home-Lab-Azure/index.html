@@ -12,7 +12,7 @@
 <p>This lab consisted of setting up a honeypot in Azure and using the virtual machine's logs to build a map based on where the attackers' IP addresses were from. Additionally, I added an interface that showed the percentage of attacks from each region and an incident generation rule.</p>
 </div>
 <div>
-
+<hr class="border-hr-dotted">
 <h2> -- Steps -- </h2>
 <ol>
 <div>
@@ -26,8 +26,13 @@
 
 <p> Resource Groups > +Create > Input the required data (used the location 2 of the Region) > Review + Create</p>
 
+<img src="Progress-Images/Resource_groups.png" alt="Created resource group">
+
+
 <li>Create a Virtual Network (VNet)</li> 
   <p> Virtual Networks > +Create > Add VNet name and nsure the Region is the same as the Resource Group > Review + create * We leave all other configurations as default for Security, IP addresses, and Tags, but it's useful to see how the VNet will be</p>
+
+<img src="Progress-Images/VNet_instance.png" alt="Created virtual network">
 
 <li>Create the VM</li>
 
@@ -43,12 +48,17 @@ Availability: No redundancy required > Security Type: Standard > Image: Windows 
 
 <p>Skip management config > Monitoring: Disable Boot diagnostics > Review + create</p>
 
+<img src="Progress-Images/VM-config.png" alt="Created virtual machine">
+
 <li>Add NSG (firewall) rule to allow ANY traffic in Azure</li>
 
 <p>> Resource Groups > Resource that ends with 'nsg'</p>
   <p>For inbound rules, only the Remote Desktop Protocol is initially allowed</p>
 
 <p>> Delete inbound rule with 300 - RDP > Settings > Inbound security rules > +ADD > Change Destination Port to '*' (ANY) and name it > ADD</p>
+
+<img src="Progress-Images/firewall_inbound_rule.png" alt="Created firewall inbound rule">
+
 <li>Disable internal Windows firewall</li>
 
 <p>> Virtual machines > Click VM > In Windows App (computer app) > Add PC > Name: Public IP</p>
@@ -70,8 +80,10 @@ Availability: No redundancy required > Security Type: Standard > Image: Windows 
   <p>** Now the log workspace will be linked to the SIEM ** </p>
 <p>To connect VM to LAW through Sentinel... In Sentinel > Content Management > Content Hub > Install Windows Security Events > Manage Windows Security Events > Check WSE via AMA (Azure Monitoring Agent) > Open Connector Page > Create data collection rule to forward the logs and grant them access to the SIEM > Resources: VM > Leave the next tabs as they are > Create *Simultaneously, we can see in the VM interface that the Connector is being installed</p>
 
+<img src="Progress-Images/Sentinel-Instance.png" alt="Sentinel instance">
+
 <p>To see logs:</p>
-  <p>> In Logs Analysitcs Workspace > Logs > Tables > Search 'SecurityEvent'</p>
+  <p>> In Logs Analytics Workspace > Logs > Tables > Search 'SecurityEvent'</p>
     <p>* Set to KQL mode</p>
     <p>* To only see certain parameters, use '| project {list of params}', or to only get a certain user, '| where Account == '{acount name}''</p>
     <p>*To search the location of an address: https://ipinfo.io/{ip address}</p>
@@ -84,16 +96,33 @@ Availability: No redundancy required > Security Type: Standard > Image: Windows 
 <div>
 <li>Create the map</li>
 <p>In Sentinel > Threat management > Workbooks > Add workbook > Edit > Remove all elements > Copy map.json from the description > Add query/Add data source + visualization > Advanced editor and paste the data > Done editing (at the top)</p>
-
+<img src="Progress-Images/Defender_instance.png" alt="Created virtual network">
+<img src="Progress-Images/initial_map2.png" alt="Created virtual network">
 <p>Added percentages per country: (Pie chart) let GeoIPDB_FULL = _GetWatchlist("geoip"); let TotalEvents = toscalar( SecurityEvent | where EventID == 4625 | count ); SecurityEvent | where EventID == 4625 | evaluate ipv4_lookup(GeoIPDB_FULL, IpAddress, network) | summarize FailureCount = count() by countryname | extend Percentage = round(todouble(FailureCount) / todouble(TotalEvents) * 100, 2) | project country = tostring(countryname), Percentage | order by Percentage desc</p>
+<img src="Progress-Images/initial_map.png" alt="Created virtual network">
+
+
 
 <li>Generate incidents</li>
 
 <p>Sentinel > Configuration > Analytics > Create Scheduled Query Rule ></p>
+<img src="Progress-Images/Defender_RuleName.png" alt="Created virtual network">
+<img src="Progress-Images/Defender_rule_full.png" alt="Created virtual network">
+
 </ol>
 </div>
 </div>
+  <hr class="border-hr-dotted">
+<div>
+  <h2>-- Results --</h2>
+  <img src="Progress-Images/initial_map2.png" alt="Created virtual network">
+  <img src="Progress-Images/initial_map.png" alt="Created virtual network">
 
+  <img src="Progress-Images/last_map.png" alt="Created virtual network">
+  <img src="Progress-Images/last_percentage.png" alt="Created virtual network">
+
+</div>
+  <hr class="border-hr-dotted">
 <div>
 <h2>-- References --</h2>
 
