@@ -15,3 +15,14 @@ figcaption {
   margin-right: auto;
   padding: 20px;
 }
+
+ul{
+    max-width: 80%; 
+  margin-left: auto;
+  margin-right: auto;
+}
+ol{
+    max-width: 80%; 
+  margin-left: auto;
+  margin-right: auto;
+}
