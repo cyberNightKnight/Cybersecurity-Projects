@@ -18,7 +18,8 @@
 <p>This lab consisted of setting up a honeypot in Azure and using the virtual machine's logs to build a map based on where the attackers' IP addresses were from. </p>
   <p>Additionally, I added an interface that showed the percentage of attacks from each region and an incident generation rule.</p>
 
-  <p><b>DISCLAIMER: This lab was mainly developed following a guide created by Josh Madajor, which can be found in the References section. I additionally added a percentage map and an incident generation rule to make lab more complete.</b></p>
+  <p>** A concept I mention is SIEM. This stands for Security Information and Event Management, and it is a system that analyzes logs in order to detect events. **</p>
+  <p><b>DISCLAIMER: This lab was mainly developed following a guide created by Josh Madajor, which can be found in the References section. I additionally added a percentage map and an incident generation rule to make the lab more complete.</b></p>
 </div>
 <div>
 <hr class="border-hr-dotted">
@@ -28,7 +29,7 @@
  
 <li>Create an Virtual Machine (VM)</li>
 
-<p>This VM is the one that will work as the honeypot.</p>
+<p>This VM is the one that will act as the honeypot.</p>
 <p>** To do this, we first need to have an Azure account. In this case the account was created using a free subscription. **</p>
 
 <ol type="a">
@@ -46,11 +47,11 @@
 
 
 <li>Create a Virtual Network (VNet)</li> 
-<p><u>The VM's public IP will be created here.</u></p>
+<p><u>The VM's public IP--the one attackers will try to connect to--will be created here.</u></p>
   <p> Back in Azure's home page, we search for 'Virtual Networks', go to the corresponding interface, and select '+ Create'.</p>
     <p> We add the VNet's name and ensure the Region is the same as the RG.</p>
        <p>Finally, we select 'Review + create'</p> 
-       <p>** We leave all other configurations as default for 'Security', 'IP addresses', and 'Tags', but it's still useful to check the complete VNet's configuration **</p>
+       <p>** We leave all other configurations as default for 'Security', 'IP addresses', and 'Tags', but it's still useful to check the VNet's configuration **</p>
 <figure>
 <img src="Progress-Images/VNet_instance.png" alt="Created virtual network">
 
@@ -99,7 +100,7 @@
 <li>Add NSG (firewall) rule to allow ANY traffic in Azure</li>
 <p><u>The purpose of this is ensuring that the VM is detected as vulnerable and thus is seen as a viable target for attacks.</u></p>
 <p> We go to our Resource Groups page and search for the resource that has the .nsg extension</p>
-  <p>** For inbound rules, only the Remote Desktop Protocol(RDP) is initially allowed**</p>
+  <p>** For inbound rules, only the Remote Desktop Protocol (RDP) is initially allowed**</p>
 
 <p>Delete the inbound rule with 300 - RDP, then go to 'Settings' > 'Inbound security rules' > '+ ADD' </p>
 <p> Change 'Destination Port' to '*' (ANY) and name the rule and select 'ADD'.</p> 
@@ -110,16 +111,16 @@
 </figure>
 
 <li>Disable internal Windows firewall</li>
-<p><u>Again, we want to ensure the VM is as vulnerable as possible. This firewall also is the one where we'll get the logs from.</u></p>
-<p>Go to the Virtual machines interface and select the VM created for this exercise</p>
+<p><u>Again, we want to ensure the VM is as vulnerable as possible. This firewall is also the one where we'll get the logs from.</u></p>
+<p>Go to the 'Virtual machines' interface and select the VM created for this exercise</p>
 <p>Now we connect remotely to our VM.</p>
-<p>** Since I have Mac, I had to use an app called 'Windows App' to connect to the Virtual Windows Machine, but for devices with Windows OS this can be done using the 'Remote Desktop Connection (RDP)' app. **</p>
+<p>** Since I use a Mac (iOS), I had to use an app called 'Windows App' to connect to the Virtual Windows Machine, but for devices with Windows OS this can be done using the 'Remote Desktop Connection (RDP)' app. **</p>
   <p>In the 'Windows App' application, we select 'Add PC' and put the VM's public IP as the name</p>
 <p>Once inside the VM, we search for 'wf.msc' (Windows Defender), select 'Windows Defender Firewall Properties', and Turn all firewall 'Profile' states off > 'Apply' > 'Ok'</p>
 
 <p>If we ping the public IP we can now see the VM is reachable</p>
 
-<p>** NOTE: If we try to access with wrong credentials, we can see those logs in 'Event Viewer' > 'Security'. **</p>
+<p>** NOTE: If we try to access with incorrect credentials, we can see those logs in 'Event Viewer' > 'Security'. **</p>
   </ol>
 </div>
 <div>
@@ -127,12 +128,12 @@
 <p><u>In order to generate the map, percentage diagram, and incident rules, we need to obtain the logs from the VM's firewall.</u></p>
 <ol type="a">
 <li>Create Log analytics workspace (LAW)</li>
-<p><u>LAW will receive the logs from the VM, but to do this we first need access through Sentinel.</u></p>
+<p><u>LAW will receive the logs from the VM, but to do this we first need to access them through Sentinel.</u></p>
   <p> We go to the 'Log Analytics Workspaces' interface and click on '+ Create'. Then, fill in the required parameters.</p>
 
 <p>In the 'Microsoft Sentinel' interface (which is a SIEM), create a link to the Log analytics workspace</p>
   <p>** Now the log workspace will be linked to the SIEM ** </p>
-<p>To connect the VM to LAW through Sentinel:</p>
+<p>To connect the VM and LAW through Sentinel:</p>
   <p>In Sentinel, go to 'Content Management' > 'Content Hub' > 'Install Windows Security Events' > 'Manage Windows Security Events' > Check 'WSE via AMA' (Azure Monitoring Agent)</p>
   <p>Open the Connector Page and create a data collection rule to forward the logs and grant them access to the SIEM </p>
   <p>In the 'Resources' interface, select our VM. Leave the next tabs as they are and then select 'Create'. </p>
@@ -147,14 +148,15 @@
     <p> To add more specific parameters, set it to KQL mode</p>
     <p>** To only see certain parameters, use '| project {list of params}', or to only get a certain user, '| where Account == '{acount name}''**</p>
     <p>** To search the location of an IP address: https://ipinfo.io/{ip address} **</p>
-<p>To link IP address and its origin country, upload .csv file with IP-location equivalences to Azure. I obtained it from the video's description (check the References section of this page)</p>
+<p>To link IP address and its origin country, upload the .csv file with IP-location equivalences to Azure. I obtained it from the video's description (check the References section of this page)</p>
 <p>In Sentinel, go to the Sentinel instance > 'Configuration' > 'Watchlist'.</p> 
 <p>It will redirect to Windows Defender. There, go to 'Microsoft Sentinel' > 'Configuration' > 'Watchlist' > '+ New'. </p>
  <ul> 
-  <li>Name & Alias: geoip</li> 
+  <li>Name & Alias: in this case it was 'geoip', but it can be any name</li> 
   <li>Source: Drop the file; Search key: 'network'
   <li>Review + Create</li>
   </ul>
+  <br>
   ** To see watchlist from LAW, go back to KQL mode and input <i>'_GetWatchlist("watchlist name")'. Then run it **</i>
 
 </ol>
@@ -164,7 +166,9 @@
 <li>Create the map</li>
 <p><u>This will help visualize where the attacks are coming from and potentially block IP addresses from these areas.</u></p>
 <p>In Sentinel--which will redirect to Defender--, select 'Threat management' > 'Workbooks' > 'Add workbook' > 'Edit'</p>
+<br>
 <p>Remove all of the elements, select 'Add query'/'Add data source + visualization' and go to 'Advanced editor'.</p> 
+<br>
 <p>In the advanced editor I pasted the data contained in the map.json file that cand be found in the video's description.</p>
 <p>Select 'Done editing' (at the top)</p>
 <figure>
@@ -173,14 +177,14 @@
 </figure>
 <figure>
 <img src="Progress-Images/initial_map2.png" alt="Created map in its initial state">
-<figcaption>This is the initial map. We can already see a few attacks.</figcaption>
+<figcaption>This is the map after a couple hours of being active.</figcaption>
 </figure>
 
 <li>Create percentages diagram</li>
-<p><u>I added this to get a clearer view of where most of the attacks were coming from. We can measure this with plain numbers, but I find percentages easier to deal with mainly for statistical reasons.</u></p>
+<p><u>I added this to get a clearer view of where most of the attacks were coming from. We can measure this with plain numbers, but I find percentages easier to deal with, mainly for statistical reasons.</u></p>
 <p>In this case I created a diagram with the percentage of attacks per country.</p>
-<p>To do this I followed the same steps as the previous step, except I selected 'Pie chart' as the type.
-  <p> For the input in the advanced editor:</p>
+<p>To do this, I followed the same initial steps as the map, except I selected 'Pie chart' as the type.
+  <p> The input in the advanced editor also changed:</p>
   <p>
     <i>let IPGeoMap = _GetWatchlist("geoip"); <br> 
       let TotalEvents = toscalar( SecurityEvent <br>
@@ -193,7 +197,7 @@
       | project country = tostring(countryname), Percentage <br>
       | order by Percentage desc</i></p>
 
-    <p>This essentially generates a Pie chart based on the amount of failed login attempt per country. The output is then converted to a percentage</p>
+    <p>This essentially generates a Pie chart based on the amount of failed login attempt per country. The IPs and locations are resolved with the ipv4_lookup function. The output is then converted to a percentage</p>
 <figure>
 <img src="Progress-Images/initial_map.png" alt="Created percentage chart">
 
@@ -201,9 +205,9 @@
 
 
 <li>Generate incidents</li>
-<p><u>Incidents are an essential part of a SOC because they notify when anomaly is present in the system. The sooner these anomalies are detected, the sooner the risk can be mitigated. In this case, the incidents only focus on access and persistent attempts, but in a real SOC, these would cover a larger range of events.</u></p>
-<p>To generate incidents, I went back to Sentinel > Configuration > Analytics > Create Scheduled Query Rule</p>
-<p>In this case it would only generate an incient if there was a failed login attempt, but would focus on persistence attacks.</p>
+<p><u>Incidents are an essential part of a SOC because they notify when an anomaly is present in the system. The sooner these anomalies are detected, the sooner the risk can be mitigated. In this case, the incidents only focus on persistent access attempts, but in a real SOC, these would cover a larger range of events.</u></p>
+<p>To generate incidents, I went back to 'Sentinel' > 'Configuration' > 'Analytics' > 'Create Scheduled Query Rule'</p>
+<p>In this case it would only generate an incient if there was a failed login attempt, focusing on persistence attacks.</p>
 <p>Here's how the rule ended up looking:</p>
 <img src="Progress-Images/Defender_RuleName.png" alt="Defender rule name">
 <img src="Progress-Images/Defender_rule_full.png" alt="Full Defender rule">
@@ -213,7 +217,7 @@
   <hr class="border-hr-dotted">
 <div>
   <h2>-- Results --</h2>
-  <p>Within the first few hours there were already a couple of attacks.</p>
+  <p>Within the first few hours there were already many attacks.</p>
   <img src="Progress-Images/initial_map2.png" alt="Initial attack map">
   <img src="Progress-Images/initial_map.png" alt="Initial percentage">
  
@@ -227,9 +231,11 @@
 </div>
 <div>
    <h2>-- Lessons learned --</h2>
-  <p>The purpose of this lab was to learn about the deployment of honeypots, how we can detect and identify attackers, and how to map thos attackers based on the IP's location.</p>
+  <p>The purpose of this lab was to learn about the deployment of honeypots, how we can detect and identify attackers, and how to map those attackers based on the IP's location.</p>
   <p>Additionally, I also learned how to generate incidents and turn log data into percentages.</p>
-  <p>However, I'd say the greatest thing I learned was how little time it takes for an attacker to find a vulnerable device; within the first few hours there already were at least 2 access attempts. After 8 hours there were more than 60k. This is why cybersecurity is very important in this technological era.</p>
+  <p>However, I'd say perhaps the most relevant thing I learned is how little time it takes for an attacker to find a vulnerable device; within the first two hours there were at least 2 access attempts already. After 8 hours there were more than 60k.</p> <p>This is why cybersecurity is very important in this technological era: to help protect people from those who are actively looking to attack.</p>
+  <br>
+  <h3>Thank you!</h3>
 </div>
   <hr class="border-hr-dotted">
 <div>
