@@ -15,7 +15,10 @@
 <div>
   <h2>-- Overview --</h2>
 
-<p>This lab consisted of setting up a honeypot in Azure and using the virtual machine's logs to build a map based on where the attackers' IP addresses were from. Additionally, I added an interface that showed the percentage of attacks from each region and an incident generation rule.</p>
+<p>This lab consisted of setting up a honeypot in Azure and using the virtual machine's logs to build a map based on where the attackers' IP addresses were from. </p>
+  <p>Additionally, I added an interface that showed the percentage of attacks from each region and an incident generation rule.</p>
+
+  <p><b>DISCLAIMER:</b>Most of this lab was developed following a guide created by Josh Madajor, which can be found in the References section. The parts that I worked on additionally are the percentage map and incident generation rule.</p>
 </div>
 <div>
 <hr class="border-hr-dotted">
@@ -23,117 +26,203 @@
 <ol>
 <div>
  
-<li>Create an Virtual Machine</li>
+<li>Create an Virtual Machine (VM)</li>
 
 <p>** To do this, we first need to have an Azure account. In this case the account was created using a free subscription. **</p>
 
 <ol type="a">
-  <li>Create a Resource Group</li>
+  <li>Create a Resource Group (RG)</li>
+<p>Inside the Azure main interface, we search for 'Resource Groups' and go to the corresponding interface.</p>
+<p>Once we're in the Resource Groups interface, we click on '+ Create' and input the required data. 
+  For this exercise I used the second location of East US. </p>
+  <p>After the data is complete and correct, we click on 'Review + Create'</p>
+<figure>
+  <img src="Progress-Images/Resource_groups.png" alt="Resource Groups">
+  <figcaption>This is the resource group created for this activity.</figcaption>
+</figure>
 
-<p> Resource Groups > +Create > Input the required data (used the location 2 of the Region) > Review + Create</p>
-
-<img src="Progress-Images/Resource_groups.png" alt="Created resource group">
 
 
 <li>Create a Virtual Network (VNet)</li> 
-  <p> Virtual Networks > +Create > Add VNet name and nsure the Region is the same as the Resource Group > Review + create * We leave all other configurations as default for Security, IP addresses, and Tags, but it's useful to see how the VNet will be</p>
-
+  <p> Back in Azure's home page, we search for 'Virtual Networks', go to the corresponding interface, and select '+ Create'.</p>
+    <p> We add the VNet's name and ensure the Region is the same as the RG.</p>
+       <p>Finally, we select 'Review + create'</p> 
+       <p>** We leave all other configurations as default for 'Security', 'IP addresses', and 'Tags', but it's still useful to check the complete VNet's configuration **</p>
+<figure>
 <img src="Progress-Images/VNet_instance.png" alt="Created virtual network">
-
+<figcaption>This is the virtual network created for this activity.</figcaption>
+</figure>
 <li>Create the VM</li>
+<p>Just like in the previous steps, we go to the 'Virtual machines' interface and select '+ Create' > 'Virtual machine.'</p>
+<p>We add the RG and name the VM</p>
+<p>** It's not recommended for the VM to be called in a similar way as the rest of the Resource Group's resources because the attackers might see it. So, I called it something similar to what a business would call it ('ADMON-NET-WEST-2'). **</p>
+<p>As for the rest of the configuration:</p>
+<ul>
+<li>Availability: No redundancy required </li> 
+<li>Security Type: Standard</li>
+<li>Image: Windows 10 Enterprise, version 22H2 - x64 Gen2(free services eligible)</li> 
+<li>Size: Standard_D2s_v3</li>
+<li>Set the username and password</li>
+<li>Check licensing agreement</li>
+</ul>
 
-<p>> Virtual machines > +Create > Virtual machine > Add the Resource Group and name the VM
-  * It's not recommended for the VM to be called in a similar way as the rest because the attackers might see it. So, I called it something similar to what a business would call it (ADMON-NET-WEST-2).
-Availability: No redundancy required > Security Type: Standard > Image: Windows 10 Enterprise, version 22H2 - x64 Gen2(free services eligible) > Size: Standard_D2s_v3</p>
+<p>In the Disk section:</p>
+<ul>
+  <li>I selected tandard HDD for lower cost, but it can be any other disk</li>
+</ul>
+  
+<p>In the network section:</p>
+<ul>
+  <li>
+    Check Delete public IP and NC when VM is delete
+  </li>
+</ul>
 
-<p>Set username and password > Check licensing agreement</p>
+<p>We skip  Management Configuration.</p> 
 
-<p>Next > Disk: Standard HDD for lower cost</p>
+<p>Finally, in the Monitoring section:</p>
+<ul>
+  <li>Disable Boot diagnostics</li>
+</ul>
+ 
+<p>After verifying all data is correct, we select 'Review + create'</p>
 
-<p>Next > Network: Check Delete public IP and NC when VM is deleted</p>
-
-<p>Skip management config > Monitoring: Disable Boot diagnostics > Review + create</p>
-
+<figure>
 <img src="Progress-Images/VM-config.png" alt="Created virtual machine">
+<figcaption>This is the virtual machine created for this activity.</figcaption>
+</figure>
 
 <li>Add NSG (firewall) rule to allow ANY traffic in Azure</li>
 
-<p>> Resource Groups > Resource that ends with 'nsg'</p>
-  <p>For inbound rules, only the Remote Desktop Protocol is initially allowed</p>
+<p> We go to our Resource Groups page and search for the resource that has the .nsg extension</p>
+  <p>** For inbound rules, only the Remote Desktop Protocol(RDP) is initially allowed**</p>
 
-<p>> Delete inbound rule with 300 - RDP > Settings > Inbound security rules > +ADD > Change Destination Port to '*' (ANY) and name it > ADD</p>
+<p>Delete the inbound rule with 300 - RDP, then go to 'Settings' > 'Inbound security rules' > '+ ADD' </p>
+<p> Change 'Destination Port' to '*' (ANY) and name the rule and select 'ADD'.</p> 
 
+<figure>
 <img src="Progress-Images/firewall_inbound_rule.png" alt="Created firewall inbound rule">
+<figcaption>This is the inbound rule created for the firewall.</figcaption>
+</figure>
 
 <li>Disable internal Windows firewall</li>
 
-<p>> Virtual machines > Click VM > In Windows App (computer app) > Add PC > Name: Public IP</p>
-<p>> wf.msc (Windows Defender) > Windows Defender Firewall Properties > Turn all firewall 'Profile' states Off > Apply > Ok</p>
+<p> Go to the Virtual machines interface and select the VM created for this exercise</p>
+<p>Now we connect remotely to our VM.</p>
+<p>** Since I have Mac, I had to use an app called 'Windows App' to connect to the Virtual Windows Machine, but for devices with Windows OS this can be done using the 'Remote Desktop Connection (RDP)' app. **</p>
+  <p>In the 'Windows App' application, we select 'Add PC' and put the VM's public IP as the name</p>
+<p>Once inside the VM, we search for 'wf.msc' (Windows Defender), select 'Windows Defender Firewall Properties', and Turn all firewall 'Profile' states off > 'Apply' > 'Ok'</p>
 
-<p>> Ping the public IP</p>
+<p>If we ping the public IP we can now see the VM is reachable</p>
 
-<p>Now the VM is open and reachable :)</p>
-<p>NOTE: If we try to access with wrong credentials, we can see those logs in Event Viewer>Security</p>
+<p>** NOTE: If we try to access with wrong credentials, we can see those logs in 'Event Viewer' > 'Security'. **</p>
   </ol>
 </div>
 <div>
 <li>Forward logs to Azure</li>
 <ol type="a">
-<li>Create Log analytics workspace</li>
-  <p>> Log Analytics Workspaces > +Create > Fill in the required parameters</p>
+<li>Create Log analytics workspace (LAW)</li>
+  <p> We go to the 'Log Analytics Workspaces' interfac and click on '+Create'. Then, fill in the required parameters.</p>
 
-<p>> Microsoft Sentinel (SIEM) > +Create > Link to LAW</p>
+<p>In the 'Microsoft Sentinel' interface (which is a SIEM), create a link to the Log analytics workspace</p>
   <p>** Now the log workspace will be linked to the SIEM ** </p>
-<p>To connect VM to LAW through Sentinel... In Sentinel > Content Management > Content Hub > Install Windows Security Events > Manage Windows Security Events > Check WSE via AMA (Azure Monitoring Agent) > Open Connector Page > Create data collection rule to forward the logs and grant them access to the SIEM > Resources: VM > Leave the next tabs as they are > Create *Simultaneously, we can see in the VM interface that the Connector is being installed</p>
+<p>To connect the VM to LAW through Sentinel:</p>
+  <p>In Sentinel, go to 'Content Management' > 'Content Hub' > 'Install Windows Security Events' > 'Manage Windows Security Events' > Check 'WSE via AMA' (Azure Monitoring Agent)</p>
+  <p>Open the Connector Page and create a data collection rule to forward the logs and grant them access to the SIEM </p>
+  <p>In the 'Resources' interface, select our VM. Leave the next tabs as they are and then select 'Create'. </p>
+    <p>** Simultaneously, we can see in the VM interface that the Connector is being installed. **</p>
 
+    <figure>
 <img src="Progress-Images/Sentinel-Instance.png" alt="Sentinel instance">
-
+<figcaption>This is the instance in Sentinel we created.</figcaption>
+</figure>
 <p>To see logs:</p>
-  <p>> In Logs Analytics Workspace > Logs > Tables > Search 'SecurityEvent'</p>
-    <p>* Set to KQL mode</p>
-    <p>* To only see certain parameters, use '| project {list of params}', or to only get a certain user, '| where Account == '{acount name}''</p>
-    <p>*To search the location of an address: https://ipinfo.io/{ip address}</p>
-<p>IP address to country a. Upload .csv file with IP-location equivalences to Azure</p>
-<p>In Sentinel > Our Sentinel instance > Configuration > Watchlist...it will redirect to Defender. There, go to Microsoft Sentinel > Configuration > Watchlist > +New > Name & Alias: geoip > Source: Drop the file, Search key: network > Review + Create *To see watchlist from LAW, '_GetWatchlist("watchlist name")'</p>
+  <p>In 'Logs Analytics Workspace', go to 'Logs' > 'Tables' and search 'SecurityEvent'</p>
+    <p> To add more specific parameters, set it to KQL mode</p>
+    <p>** To only see certain parameters, use '| project {list of params}', or to only get a certain user, '| where Account == '{acount name}''**</p>
+    <p>** To search the location of an IP address: https://ipinfo.io/{ip address} **</p>
+<p>To link IP address and its origin country, upload .csv file with IP-location equivalences to Azure. I obtained it from the video's description (check the References section of this page)</p>
+<p>In Sentinel, go to the Sentinel instance > 'Configuration' > 'Watchlist'.</p> 
+<p>It will redirect to Windows Defender. There, go to 'Microsoft Sentinel' > 'Configuration' > 'Watchlist' > '+ New'. </p>
+ <ul> 
+  <li>Name & Alias: geoip</li> 
+  <li>Source: Drop the file; Search key: 'network'
+  <li>Review + Create</li>
+  </ul>
+  ** To see watchlist from LAW, go back to KQL mode and input <i>'_GetWatchlist("watchlist name")'. Then run it **</i>
 
-<p>In KQL (LAW), to search for the location of the IP : let GeoIPWatch = _GetWatchlist('geoip'); ''' let WindowsEvents = SecurityEvent | where IpAddress == '{ip address}' | where EventID == 4625 | order by TimeGenerated desc | evaluate ipv4_lookup(GeoIPWatch, IpAddress, network); WindowsEvents | project TimeGenerated, Computer, AttackerIp = IpAddress, cityname, countryname, latitude, longitude'''</p>
 </ol>
 </div>
 <div>
-<li>Create the map</li>
-<p>In Sentinel > Threat management > Workbooks > Add workbook > Edit > Remove all elements > Copy map.json from the description > Add query/Add data source + visualization > Advanced editor and paste the data > Done editing (at the top)</p>
-<img src="Progress-Images/Defender_instance.png" alt="Created virtual network">
-<img src="Progress-Images/initial_map2.png" alt="Created virtual network">
-<p>Added percentages per country: (Pie chart) let GeoIPDB_FULL = _GetWatchlist("geoip"); let TotalEvents = toscalar( SecurityEvent | where EventID == 4625 | count ); SecurityEvent | where EventID == 4625 | evaluate ipv4_lookup(GeoIPDB_FULL, IpAddress, network) | summarize FailureCount = count() by countryname | extend Percentage = round(todouble(FailureCount) / todouble(TotalEvents) * 100, 2) | project country = tostring(countryname), Percentage | order by Percentage desc</p>
-<img src="Progress-Images/initial_map.png" alt="Created virtual network">
 
+<li>Create the map</li>
+<p>In Sentinel--which will redirect to Defender--, select 'Threat management' > 'Workbooks' > 'Add workbook' > 'Edit'</p>
+<p>Remove all of the elements, select 'Add query'/'Add data source + visualization' and go to 'Advanced editor'.</p> 
+<p>In the advanced editor I pasted the data contained in the map.json file that cand be found in the video's description.</p>
+<p>Select 'Done editing' (at the top)</p>
+<figure>
+<img src="Progress-Images/Defender_instance.png" alt="Created instance of Windows Defender">
+<figcaption>This is the instance in Windows Defender.</figcaption>
+</figure>
+<figure>
+<img src="Progress-Images/initial_map2.png" alt="Created map in its initial state">
+<figcaption>This is the initial map. We can already see a few attacks.</figcaption>
+</figure>
+
+<li>Create percentages diagram</li>
+<p>In this case I created a diagram with the percentage of attacks per country.</p>
+<p>To do this I followed the same steps as the previous step, except I selected 'Pie chart' as the type.
+  <p> For the input in the advanced editor:</p>
+  <p>
+    <i>let IPGeoMap = _GetWatchlist("geoip"); <br> 
+      let TotalEvents = toscalar( SecurityEvent <br>
+      | where EventID == 4625 <br>
+      | count ); SecurityEvent <br>
+      | where EventID == 4625 <br>
+      | evaluate ipv4_lookup(IPGeoMap, IpAddress, network) <br>
+      | summarize FailureCount = count() by countryname <br>
+      | extend Percentage = round(todouble(FailureCount) / todouble(TotalEvents) * 100, 2) <br>
+      | project country = tostring(countryname), Percentage <br>
+      | order by Percentage desc</i></p>
+
+    <p>This essentially generates a Pie chart based on the amount of failed login attempt per country. The output is then converted to a percentage</p>
+<figure>
+<img src="Progress-Images/initial_map.png" alt="Created percentage chart">
+<figcaption>This is the instance in Sentinel we created.</figcaption>
+</figure>
 
 
 <li>Generate incidents</li>
 
-<p>Sentinel > Configuration > Analytics > Create Scheduled Query Rule ></p>
-<img src="Progress-Images/Defender_RuleName.png" alt="Created virtual network">
-<img src="Progress-Images/Defender_rule_full.png" alt="Created virtual network">
-
+<p>To generate incidents, I went back to Sentinel > Configuration > Analytics > Create Scheduled Query Rule</p>
+<p>In this case it would only generate an incient if there was a failed login attempt, but would focus on persistence attacks.</p>
+<p>Here's how the rule ended up looking:</p>
+<img src="Progress-Images/Defender_RuleName.png" alt="Defender rule name">
+<img src="Progress-Images/Defender_rule_full.png" alt="Full Defender rule">
 </ol>
 </div>
 </div>
   <hr class="border-hr-dotted">
 <div>
   <h2>-- Results --</h2>
-  <img src="Progress-Images/initial_map2.png" alt="Created virtual network">
-  <img src="Progress-Images/initial_map.png" alt="Created virtual network">
+  <p>Within the first few hours there were already a couple of attacks.</p>
+  <img src="Progress-Images/initial_map2.png" alt="Initial attack map">
+  <img src="Progress-Images/initial_map.png" alt="Initial percentage">
+ 
 
-  <img src="Progress-Images/last_map.png" alt="Created virtual network">
-  <img src="Progress-Images/last_percentage.png" alt="Created virtual network">
+  <p>After leaving the VM running for more than 8 hours, this was the result:</p>
+  <img src="Progress-Images/last_map.png" alt="Final attack map">
+  <img src="Progress-Images/last_percentage.png" alt="Final percentage">
+ <p>** Take into account the incidents are grouped and each of these may contain up to 150 similar incidents **</p>
+<img src="Progress-Images/last_grouped_incidents.png" alt="Last incidents>
 
 </div>
   <hr class="border-hr-dotted">
 <div>
 <h2>-- References --</h2>
 
-<p>'Cyber Home Lab from ZERO and Catch Attackers! Free, Easy, and REAL (Microsoft Sentinel 2025) by Josh Madajor - 'https://www.youtube.com/watch?v=g5JL2RIbThM</p> 
-<p>Generating incidents (Microsoft): https://learn.microsoft.com/en-us/azure/sentinel/create-incidents-from-alerts</p>
+<p>'Cyber Home Lab from ZERO and Catch Attackers! Free, Easy, and REAL (Microsoft Sentinel 2025)' by Josh Madajor - https://www.youtube.com/watch?v=g5JL2RIbThM</p> 
+<p>'Create Incidents from alerts' by Microsoft: https://learn.microsoft.com/en-us/azure/sentinel/create-incidents-from-alerts</p>
 </div>
 </body>
 </html>
