@@ -213,9 +213,21 @@ drwxr-xr-x 150 root root 4096 Apr  3 15:20 ..<br>
    <p><b>Output: </b> {password}</p>
   <p><b>Explanation:</b></p>
   <p>This is a ROT 13 (letters were rotated 13 times over; it's a cipher). M is the 13th letter, so it will be the equivalent of A.</p>
-  <p>In this case, tr does the rotation. The ranges are lower and uppercase a-z.<br>The second string contains the rotated numbers starting from the thirteenth letter (M)</p>
+  <p>In this case, tr does the rotation. The ranges are lower and uppercase a-z.<br>The second string contains the rotated numbers starting from the thirteenth letter (M), which will be the equivalent of 'A'.</p>
   <br>
     <!-- Level 12 to 13 -->
+     <li><h3>Level 12 --> 13</h3></li>
+  <p><b>Description:</b></p>
+  <p class='instructions'>The password for the next level is stored in the file data.txt, which is a hexdump of a file that has been repeatedly compressed. For this level it may be useful to create a directory under /tmp in which you can work. Use mkdir with a hard to guess directory name. Or better, use the command “mktemp -d”. Then copy the datafile using cp, and rename it using mv (read the manpages!)</p>
+  <br>
+  <p><b>Solution:</b></p>
+  <p class="CLI_command">>>ssh bandit12@bandit.labs.overthewire.org -p 2220</p>
+  <p class="CLI_command">>mkdir /tmp/bandlvl12</p>
+  <p>or</p>
+  <p class="CLI_command">>mktemp -d  /tmp/bandlvl12.XXX</p>
+  
+  
+  <br>
    <!-- Level 13 to 14 -->
     <!-- Level 14 to 15 -->
     <!-- Level 15 to 16 -->
