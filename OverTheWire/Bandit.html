@@ -44,10 +44,10 @@
   <br>
   <p><b>Solution:</b></p>
   <p class="CLI_command">>ssh bandit1@bandit.labs.overthewire.org -p 2220</p>
-  <p class='note'><b>Note: </b>The password is the one obtained in thte previous level.</p>
+  <p class="note"><b>Note: </b>The password is the one obtained in thte previous level.</p>
   <p class="CLI_command">>ls</p>
   <p><b>Output: </b> - </p>
-  <p class='note'><b>Note: </b>Dashes alone are taken as stdin(inputs)/stdout (outputs), so if we want the system to take it as a file, we must add the directory...</p>
+  <p class="note"><b>Note: </b>Dashes alone are taken as stdin(inputs)/stdout (outputs), so if we want the system to take it as a file, we must add the directory...</p>
   <p class="CLI_command">>cat ./-</p>
   <p><b>Output: </b> {next level's password}</p>
   <p><b>Explanation:</b></p>
@@ -76,10 +76,10 @@
   <p class="CLI_command">>>ssh bandit3@bandit.labs.overthewire.org -p 2220</p>
   <p class="CLI_command">>ls</p>
   <p><b>Output: </b> inhere </p>
-   <p class='note'><b>Note: </b>It was a different color than the files, so inhere is a directory</p>
+   <p class="note"><b>Note: </b>It was a different color than the files, so inhere is a directory</p>
   <p class="CLI_command">>ls -a</p>
    <p><b>Output: </b>. .. ...Hiding-From-You</p>
-   <p class='note'><b>Note: </b>We use -a to see hidden files. They have "." in front of their name.</p>
+   <p class="note"><b>Note: </b>We use -a to see hidden files. They have "." in front of their name.</p>
    <p class="CLI_command">>cat "...Hiding-From-You"</p>
   <p><b>Output: </b> {next level's password}</p>
   
@@ -96,8 +96,8 @@
   <p class="CLI_command">>ls</p>
   <p><b>Output: </b> -file00  -file01  -file02  -file03  -file04  -file05  -file06  -file07  -file08  -file09 </p>
   <p class="CLI_command">>cat ./-file*</p>
-  <p class='note'><b>Note: </b>Displays all the files with "-file" in their name inside current directory.</p>
-  <p class='note'><b>Note: </b>Next level's password is in one of the files. Since this was one of my first challenges, I did the search manually, but there are more efficient ways to do this.</p>
+  <p class="note"><b>Note: </b>Displays all the files with "-file" in their name inside current directory.</p>
+  <p class="note"><b>Note: </b>Next level's password is in one of the files. Since this was one of my first challenges, I did the search manually, but there are more efficient ways to do this.</p>
   <br>
     <!-- Level 5 to 6 -->
         <li><h3>Level 5 --> 6</h3></li>
@@ -114,11 +114,11 @@
 <br>maybehere01  maybehere04  maybehere07  maybehere10  maybehere13  maybehere16  maybehere19
 <br>maybehere02  maybehere05  maybehere08  maybehere11  maybehere14  maybehere17
 </p>
-  <p class='note'><b>Note: </b>All are directories</p>
+  <p class="note"><b>Note: </b>All are directories</p>
   <p class="CLI_command">>ls -S -R</p>
-  <p class='note'><b>Note: </b>Displays all contents of directories.<br>-R stands for recursive (displays all elements)<br>-S orders files in descending order based on size</p>
+  <p class="note"><b>Note: </b>Displays all contents of directories.<br>-R stands for recursive (displays all elements)<br>-S orders files in descending order based on size</p>
   <p class="CLI_command">>find . -type f -exec sh -c 'for f do printf "\n%s\n""$f" cat "$f" done' sh {} +</p>
-  <p class='note'><b>Note: </b>Finds files in the current directory (type file). Then executes the power shell script: for each file, it will print the directory and its contents. In this case, {}+ is a replacement for the files taken as input for the power shell script.</p>
+  <p class="note"><b>Note: </b>Finds files in the current directory (type file). Then executes the power shell script: for each file, it will print the directory and its contents. In this case, {}+ is a replacement for the files taken as input for the power shell script.</p>
   <p>Again, I searched manually in each file, but there are more efficient ways of doing this. In the end, the password it was in ./maybehere07/.file2.</p>
   <br>
     <!-- Level 6 to 7 -->
@@ -139,12 +139,12 @@ drwxr-xr-x 150 root root 4096 Apr  3 15:20 ..<br>
 -rw-r--r--   1 root root 3851 Apr  3 15:10 .bashrc<br>
 -rw-r--r--   1 root root  807 Mar 31  2024 .profile<br>
 </p>
-  <p class='note'><b>Note:</b><br>-l →long format (size, permissions, etc.)<br>
+  <p class="note"><b>Note:</b><br>-l →long format (size, permissions, etc.)<br>
 -a →show all files<br>
 -h →convert to human readable format<br>
 </p>
   <p class="CLI_command">>find / -user bandit7 -group bandit6 -type f -size 33c 2>dev/null</p>
-  <p class='note'><b>Note: </b>This will output a path.</p>
+  <p class="note"><b>Note: </b>This will output a path.</p>
   <p class="CLI_command">>cat {path to directory}</p>
    <p><b>Output: </b> {password}</p>
   <p><b>Explanation:</b></p>
@@ -182,7 +182,7 @@ drwxr-xr-x 150 root root 4096 Apr  3 15:20 ..<br>
   <p><b>Solution:</b></p>
   <p class="CLI_command">>>ssh bandit9@bandit.labs.overthewire.org -p 2220</p>
   <p class="CLI_command">>strings data.txt | grep -P -a '=+.+'</p>
-  <p class='note'><b>Note: </b>Strings removes all binary ‘garbage’ and leaves only human-readable text
+  <p class="note"><b>Note: </b>Strings removes all binary ‘garbage’ and leaves only human-readable text
 <br>-P returns the entire line
 <br>-a outputs the text
 <br>This regex is saying to look for any 1 or more character (.+) preceded by one or more ‘=’ (=+)
