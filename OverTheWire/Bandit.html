@@ -68,6 +68,24 @@
   <p>We view the directory's contents using ls, which contains the file with spaces. We visualize the file's content using cat and the file between quotes in the current directory.</p>
   <br>
     <!-- Level 3 to 4 -->
+    <li><h3>Level 3 --> 4</h3></li>
+  <p><b>Description:</b></p>
+  <p>The password for the next level is stored in a hidden file in the inhere directory.</p>
+  <br>
+  <p><b>Solution:</b></p>
+  <p class="CLI_command">>>ssh bandit3@bandit.labs.overthewire.org -p 2220</p>
+  <p class="CLI_command">>ls</p>
+  <p><b>Output: </b> inhere </p>
+   <p class='note'><b>Note: </b>It was a different color than the files, so inhere is a directory</p>
+  <p class="CLI_command">>ls -a</p>
+   <p><b>Output: </b>. .. ...Hiding-From-You</p>
+   <p class='note'><b>Note: </b>We use -a to see hidden files. They have "." in front of their name.</p>
+   <p class="CLI_command">>cat "...Hiding-From-You"</p>
+  <p><b>Output: </b> {next level's password}</p>
+  
+  <p><b>Explanation:</b></p>
+  <p>We visualize the hidden files in the directory using -a, and put the filename between quotes so the system knows we're trying to see the contents of a file.</p>
+  <br>
     <!-- Level 4 to 5 -->
     <!-- Level 5 to 6 -->
     <!-- Level 6 to 7 -->
