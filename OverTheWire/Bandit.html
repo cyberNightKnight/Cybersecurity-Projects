@@ -29,9 +29,38 @@
   <br>
   <p><b>Solution:</b></p>
   <p class="CLI_command">>ssh bandit0@bandit.labs.overthewire.org -p 2220</p>
+  <p class="CLI_command">>ls</p>
+  <p class="CLI_command">>cat readme</p>
+  <p><b>Output: </b> {next level's password}</p>
   <p><b>Explanation:</b></p>
   <p>This is a secure shell connection through port 2220.</p>
-  
+  <p>We view the directory's contents using ls, which contains the readme file. We then visualize the file's content using cat.</p>
+<br>
+  <li><h3>Level 1 --> 2</h3></li>
+  <p><b>Description:</b></p>
+  <p>The password for the next level is stored in a file called readme located in the home directory. Use this password to log into bandit1 using SSH. Whenever you find a password for a level, use SSH (on port 2220) to log into that level and continue the game.</p>
+  <br>
+  <p><b>Solution:</b></p>
+  <p class="CLI_command">>ssh bandit1@bandit.labs.overthewire.org -p 2220</p>
+  <p class='note'><b>Note: </b>The password is the one obtained in thte previous level.</p>
+  <p class="CLI_command">>ls</p>
+  <p><b>Output: </b> - </p>
+  <p class='note'><b>Note: </b>Dashes alone are taken as stdin(inputs)/stdout (outputs), so if we want the system to take it as a file, we must add the directory...</p>
+  <p class="CLI_command">>cat ./-</p>
+  <p><b>Output: </b> {next level's password}</p>
+  <p><b>Explanation:</b></p>
+  <p>We view the directory's contents using ls, which contains the file named with a dash. We visualize the file's content using cat and specifying the current directory.</p>
+<br>
+  <li><h3>Level 2 --> 3</h3></li>
+  <p><b>Description:</b></p>
+  <p>The password for the next level is stored in a file called readme located in the home directory. Use this password to log into bandit1 using SSH. Whenever you find a password for a level, use SSH (on port 2220) to log into that level and continue the game.</p>
+  <br>
+  <p><b>Solution:</b></p>
+  <p class="CLI_command">>ls</p>
+  <p class="CLI_command">>cat readme</p>
+  <p><b>Output: </b> {next level's password}</p>
+  <p><b>Explanation:</b></p>
+  <p>We view the directory's contents using ls, which contains the readme file. We visualize the file's content using cat.</p>
 </ol>
 </div>
 
