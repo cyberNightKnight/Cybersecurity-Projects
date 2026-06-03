@@ -53,14 +53,16 @@
 <br>
   <li><h3>Level 2 --> 3</h3></li>
   <p><b>Description:</b></p>
-  <p>The password for the next level is stored in a file called readme located in the home directory. Use this password to log into bandit1 using SSH. Whenever you find a password for a level, use SSH (on port 2220) to log into that level and continue the game.</p>
+  <p>The password for the next level is stored in a file called --spaces in this filename-- located in the home directory</p>
   <br>
   <p><b>Solution:</b></p>
+  <p class="CLI_command">>>ssh bandit2@bandit.labs.overthewire.org -p 2220</p>
   <p class="CLI_command">>ls</p>
-  <p class="CLI_command">>cat readme</p>
+  <p><b>Output: </b> --spaces in this filename-- </p>
+  <p class="CLI_command">>cat ./"--spacesin this filename--"</p>
   <p><b>Output: </b> {next level's password}</p>
   <p><b>Explanation:</b></p>
-  <p>We view the directory's contents using ls, which contains the readme file. We visualize the file's content using cat.</p>
+  <p>We view the directory's contents using ls, which contains the file with spaces. We visualize the file's content using cat and the file between quotes in the current directory.</p>
 </ol>
 </div>
 
