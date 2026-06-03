@@ -1,3 +1,12 @@
 .CLI_command {
   font-family: "Courier New", Courier, monospace;
 }
+
+.instructions{
+  color: white;
+  background-color: black;
+}
+
+.notes{
+  
+}
