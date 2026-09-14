@@ -35,7 +35,7 @@ For this exercise I used the second location of East US.
   
 After the data is complete and correct, click on 'Review + Create'.
 
-!["Resource Groups"]("Progress-Images/Resource_groups.png")
+![Resource Groups](Progress-Images/Resource_groups.png)
 
 ### 3. Create a Virtual Network (VNET)
 
@@ -49,7 +49,7 @@ Finally, select 'Review + create'.
 
 __** I left all other configurations as default for 'Security', 'IP addresses', and 'Tags', but it's still useful to check the VNet's configuration **__
 
-!["Created virtual network"]("Progress-Images/VNet_instance.png")
+![Created virtual network](Progress-Images/VNet_instance.png)
 
 ### 4. Create the VM
 
@@ -82,7 +82,7 @@ Finally, in the Monitoring section:
 
 After verifying all data is correct, select 'Review + create'
 
-!["Created virtual machine"]("Progress-Images/VM-config.png" alt="Created virtual machine")
+![Created virtual machine](Progress-Images/VM-config.png)
 
 ### 5. Add NSG (firewall) rule to allow ANY traffic in Azure
 
@@ -96,7 +96,7 @@ Delete the inbound rule with 300 - RDP, then go to 'Settings' > 'Inbound securit
 
 Change 'Destination Port' to '*' (ANY) and name the rule and select 'ADD'.
 
-!["Created firewall inbound rule"]("Progress-Images/firewall_inbound_rule.png")
+![Created firewall inbound rule](Progress-Images/firewall_inbound_rule.png)
 
 ### 6. Disable internal Windows firewall
 
@@ -132,7 +132,7 @@ _In order to generate the map, percentage diagram, and incident rules, the logs 
     > 'Resources' interface > VM > 'Create'
     __** Simultaneously, it's possible to see in the VM interface that the Connector is being installed. **__
 
-!["Sentinel instance"]("Progress-Images/Sentinel-Instance.png")
+![Sentinel instance](Progress-Images/Sentinel-Instance.png)
 
 #### To see logs:####
   > 'Logs Analytics Workspace' > 'Logs' > 'Tables' > search 'SecurityEvent'
@@ -163,8 +163,8 @@ In the advanced editor I pasted the data contained in the map.json file that can
 
 Select 'Done editing' (at the top)
 
-!["Created instance of Windows Defender"]("Progress-Images/Defender_instance.png")
-!["Created map in its initial state"]("Progress-Images/initial_map2.png")
+![Created instance of Windows Defender](Progress-Images/Defender_instance.png)
+![Created map in its initial state](Progress-Images/initial_map2.png)
 _This is the map after a couple hours being active._
 
 ### 9. Create percentages diagram
@@ -179,8 +179,8 @@ The input in the advanced editor also changed:
 
 ```let IPGeoMap = _GetWatchlist("geoip");```
 ``` let TotalEvents = toscalar( SecurityEvent```
-```| where EventID == 4625 ```
-      ```| count ); SecurityEvent ```
+```  | where EventID == 4625 ```
+  ```| count ); SecurityEvent ```
       ```| where EventID == 4625 
       | evaluate ipv4_lookup(IPGeoMap, IpAddress, network) 
       | summarize FailureCount = count() by countryname 
@@ -190,7 +190,7 @@ The input in the advanced editor also changed:
 
 _This essentially generates a Pie chart based on the amount of failed login attempt per country. The IPs and locations are resolved with the ipv4_lookup function. The output is then converted to a percentage_
 
-!["Created percentage chart"](Progress-Images/initial_map.png)
+![Created percentage chart](Progress-Images/initial_map.png)
 
 ### 10. Generate incidents
 _Incidents are an essential part of a SOC because they notify when an anomaly is present in the system. The sooner these anomalies are detected, the sooner the risk can be mitigated. In this case, the incidents only focus on persistent access attempts, but in a real SOC, these would cover a larger range of events._
@@ -200,22 +200,22 @@ To generate incidents, I went back to 'Sentinel' > 'Configuration' > 'Analytics'
 In this case it would only generate an incient if there was a failed login attempt, focusing on persistence attacks.
 
 Here's how the rule ended up looking:
-!["Defender rule name"](Progress-Images/Defender_RuleName.png)
-!["Full Defender rule"](Progress-Images/Defender_rule_full.png)
+![Defender rule name](Progress-Images/Defender_RuleName.png)
+![Full Defender rule](Progress-Images/Defender_rule_full.png)
 
 ## -- Results --
 
 Within the first few hours there were already many attacks.
 
-!["Initial attack map"](Progress-Images/initial_map2.png)
-!["Initial percentage"](Progress-Images/initial_map.png)
+![Initial attack map](Progress-Images/initial_map2.png)
+![Initial percentage](Progress-Images/initial_map.png)
 
 After leaving the VM running for more than 8 hours, these were the results:
-!["Final attack map"](Progress-Images/last_map.png)
-!["Final percentage"](Progress-Images/last_percentage.png)
+![Final attack map](Progress-Images/last_map.png)
+![Final percentage](Progress-Images/last_percentage.png)
 
 __** Take into account the incidents are grouped and each of these may contain up to 150 similar incidents **__
-!["Last incidents"](Progress-Images/last_grouped_incidents.png)
+![Last incidents](Progress-Images/last_grouped_incidents.png)
 
 ## -- Lessons learned --
 
