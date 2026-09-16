@@ -8,17 +8,17 @@ A buffer overflow is a vulnerability where more data is passed to the temporary 
 
 ## Why does it happen?
 
-Whenever a variable that requires multiple spaces (such as an array or string) is defined, the compiler allocates a range of memory addresses for the variable to go exclusively; that is, the sole purpose of this memory range is to contain the variable and it is known as a __buffer__. 
+Whenever a variable that requires multiple continuous spaces (such as an array or string) is defined, the compiler allocates a range of memory addresses for the object to go. This area is known as a __buffer__. 
 
 If an attacker were to overload the buffer (pass more bytes than it can handle), these bytes could overwrite memory addresses outside its scope.
 
 According to Fortinet, the most common type of buffer overflow is stack-based, and that's the one I'll be focusing on in this document.
 
-At a low-level, in order to keep track of function calls, the compiler separates a region of the memory and starts allocating instructions and data pertaining to said functions there. This memory area is known as a __stack__. When the functions ends, the stack is destroyed, the compiler manages the return values depending on the instructions provided, and it goes back to the return address (memory address that points to the next instructions to execute after the function). 
+At a low level, in order to keep track of function calls, the compiler uses a region of the memory and starts allocating data pertaining to said functions there. This memory area is known as a __stack__. When the function ends, the stack is removed, returned values are moved depending on the function's instructions, and it goes back to the return address (memory address that points to the next instruction to execute after the function). 
 
-With this in mind, if a buffer overload were to occur and the attacker has knowledge of the memory range in relation to the return address, they could potentially craft a payload that can cause an overload and modify the return address so it returns the data they want regardless of the instructions/code. This is what I did for this exercise.
+With this in mind, if a buffer overflow were to occur and the attacker has knowledge of the memory range in relation to the return address, they could potentially craft a payload that can cause an overload and modify the return address so they can control execution and potentially return the data they want regardless of the instructions/code. This is what I did for this exercise.
 
-Before jumping to the walkthrough, a concept that's relevant to understand is the __canary__. In order to try mitigating this vulnerability, some compilers allow compilation using stack protection. What this does is randomly separate a memory address and save it before the buffer limits (on architectures like x86_64 where the stack grows downwards, the canary would be at a higher position). Before the function ends, the compiler checks this memory address and compares it to the saved one. If they're different, the function is terminated.
+Before jumping to the walkthrough, a concept that's relevant to understand is the __canary__. In order to try mitigating this vulnerability, some compilers allow compilation using stack protection. What this does is randomly separate a memory address and save it before the buffer limits (on architectures like x86_64 where the stack grows downwards, the canary would be at a higher position). Before the function ends, the compiler checks the contents of this memory address and compares it to the saved one. If they're different, the function is terminated.
 
 While the canary mitigates this vulnerability, it's still not entirely safe, as I'll demonstrate in the next section.
 
@@ -81,7 +81,7 @@ In order to make it vulnerable, I used the ```gets()``` function, which doesn't 
 In order to carry out this exercise: 
   -  Compilation.- ```gcc```; I particularly used the flag for executing with stack protection (```--fstack-protector```), which terminates the process with an error if it detects a buffer overflow
   -  Visualization of the binary's assembly code.- ```objdump```
-  -  Execution.- ```qemu-x86_64```, which is the processor I worked with
+  -  Execution.- ```qemu-x86_64```, where x86_64 is the processor I worked with
 
 
   
@@ -89,17 +89,16 @@ In order to carry out this exercise:
 
 Knowing how the stack is organized is relevant to really understand this attack.
 
-When a function is called, the first things the compiler does is copy the return address at the top of the stack (so it knows where to return to after the function ends) and the current position to a register (frame pointer). Then, it separates the rest of the stack's memory locations depending on the bytes the function will occupy. 
+When a function is called, the first things the compiler does is copy the return address and push it on the stack (so it knows where to return to after the function ends) and copy the current position to a register (frame pointer). Then, it separates the rest of the stack's memory locations depending on the bytes the function will occupy. 
 
-* It's worth noting when I say _memory_ I'm referring to registers (temporary memory locations in the CPU)
-
-In ```compareWord```'s case, the stack separated 48 bytes of memory (0x30 in hexadecimal):
+In ```compareWord```'s case, the stack reserved 48 bytes of memory (0x30 in hexadecimal):
 
   ![Prologue](Images/prologue.png)
 
-The first three lines of this image show what I described a couple paragraphs ago. The fourth line is the canary being generated.
+The first three lines of this image show what I described a couple paragraphs ago regarding the first things the compiler does. The fourth line is the canary being generated.
 
-This canary is later stored at rbp-0x08, where rbp is the frame pointer, which doesn't change throughout the execution. The reason it's subtracting is that in x86_64 processors, memory is filled downwards (from higher memory to lower), so the canary would be 0x08 positions lower than the frame pointer. This is relevant because we're talking about dynamic memory, meaning each execution will result in different memory addresses, so knowing an object's relative position is useful to pinpoint its exact location during each execution.
+
+This canary is later stored at rbp-0x08, where rbp is the frame pointer, which doesn't change throughout the execution. The reason it's subtracting is that in x86_64 processors, memory grows downwards (from higher memory to lower), so the canary would be 0x08 positions lower than the frame pointer. This is relevant because we're talking about executions that will result in different memory addresses being used, so knowing an object's relative position is useful to pinpoint its exact location during each execution.
 
 ![Canary and Buffer](Images/canaryAndBuff.png)
 
@@ -112,17 +111,18 @@ To find out the distance between the canary and the buffer, I went to the area w
 
 To calculate the canary's distance to the buffer, I subtracted their distance to rbp: 0x12 - 0x08 = 18 bytes - 8 bytes = 10 or 0xa.
 
+
 This is an oversimplified view of how the stack looks:
 
 ![Stack doigram](Images/stackDiagram.png)
 
 
-Additionally, I added some code to the C program in order to visualize the current execution'e addresses for ```success()```, the canary, and the frame pointer.
+Additionally, I added some code to the C program in order to visualize the current execution's addresses for ```success()```, the canary, and the frame pointer.
 
 
 With all this information, I could begin the exploit.
 
-I first created a temporary fifo file, which allow data exchange between processes. This left the program running:
+I first created a temporary fifo file, which allows data exchange between processes. This left the program running:
 
 ![Executing word guesser](Images/fstackExec.png)
 
@@ -136,7 +136,7 @@ This was the result. As can be observed, the canary remained the same, yet I was
 * The line under "Guess the word" was added in the code to visualize the frame pointer's address, so I didn't write anything directly to the program.
 
 
-This was compiled with the ```-fno-stack-protector``` flag, and we can observe how the frame changes after the overflow, which is something the canary tries to prevent:
+This was compiled with the ```-fno-stack-protector``` flag, and we can observe how the stack frame changes after the overflow:
 
 ![Without stack protector](Images/fno-stackExec.png)
 
@@ -154,7 +154,7 @@ I also compiled with the stack protection flag so it has extra validation.
 
 ## How to prevent
 
-To prevent this vulnerability from being exploited, the first thing to do is ensuring every accepted input has clear limits regarding size and type of data (the latter to prevent other attacks such as injections). A
+To prevent this vulnerability from being exploited, the first thing to do is ensuring every accepted input has clear limits regarding size and type of data (the latter to prevent other attacks such as injections). 
 
 Avoiding the use of functions that don't check inputs (like ```gets()```) is also relevant.
 
