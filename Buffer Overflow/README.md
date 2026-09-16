@@ -30,20 +30,141 @@ I generated a basic script in C that asks the user to guess a word. If it is cor
 
 ``` c
 
-#include <>
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+
+void success() {
+
+//Prints success message
+	printf("\n*************\nYOU GUESSED CORRECTLY :)\n*************\n");
+
+}
+
+bool compareWord(){
+
+  //Declares variable for a 10 character-long word
+	char guess[10];
+
+	printf("\nGuess the word: \n");
+
+  //Receives the word
+  gets(guess);
+
+//Compares user input to the correct word and returns a bool indicating if the user guessed (1) or not (0)
+if (strcmp(guess,"hello") == 0){
+		return 1;
+	}
+	return 0;
+}
+
+
+int main(int argc, char *argv[]){
+
+  //Prints the sentence with two newlines (puts by default adds a newline at the end)
+	puts("----Word guesser----\n");
+
+ //Stores whether the user guessed or not in a variable
+	bool guessedCorrectly = compareWord();
+
+  //If the user guessed correctly, prints the success message. If not, asks the user to try again
+	if(guessedCorrectly == 1) success(); else puts("\nYou guessed wrong. Try again...\n");
+
+}
+
 
 ```
+In order to make it vulnerable, I used the ```gets()``` function, which doesn't validate the input size before storing it. Given this vulnerability, this function is actually deprecated in newer C versions, and even in the older version I used, compiling it issued the following warning:
+
+  ![Implicit declaration warning](/Images/implicitDecWarn.png)
+
+In order to carry out this exercise: 
+  -  Compilation.- ```gcc```; I particularly used the flag for executing with stack protection (```--fstack-protector```), which terminates the process with an error if it detects a buffer overflow
+  -  Visualization of the binary's assembly code.- ```objdump```
+  -  Execution.- ```qemu-x86_64```, which is the processor I worked with
+
+
   
-  ### - Exploit flowchart
+  ### - Exploiting the vulnerability
+
+Knowing how the stack is organized is relevant to really understand this attack.
+
+When a function is called, the first things the compiler does is copy the return address at the top of the stack (so it knows where to return to after the function ends) and the current position to a register (frame pointer). Then, it separates the rest of the stack's memory locations depending on the bytes the function will occupy. 
+
+* It's worth noting when I say _memory_ I'm referring to registers (temporary memory locations in the CPU)
+
+In ```compareWord```'s case, the stack separated 48 bytes of memory (0x30 in hexadecimal):
+
+  ![Prologue](/Images/prologue.png)
+
+The first three lines of this image show what I described a couple paragraphs ago. The fourth line is the canary being generated.
+
+This canary is later stored at rbp-0x08, where rbp is the frame pointer, which doesn't change throughout the execution. The reason it's subtracting is that in x86_64 processors, memory is filled downwards (from higher memory to lower), so the canary would be 0x08 positions lower than the frame pointer. This is relevant because we're talking about dynamic memory, meaning each execution will result in different memory addresses, so knowing an object's relative position is useful to pinpoint its exact location during each execution.
+
+![Canary and Buffer](/Images/canaryAndBuff.png)
+
+In the third line, the buffer is being declared.
+
+
+To find out the distance between the canary and the buffer, I went to the area where ```gets``` was being called and noticed the address that was being calculated for the buffer at rbp-0x12. 
+
+![Buffer address](/Images/bufferAddr.png)
+
+To calculate the canary's distance to the buffer, I subtracted their distance to rbp: 0x12 - 0x08 = 18 bytes - 8 bytes = 10 or 0xa.
+
+This is an oversimplified view of how the stack looks:
+
+![Stack doigram](/Images/stackDiagram.png)
+
+
+Additionally, I added some code to the C program in order to visualize the current execution'e addresses for ```success()```, the canary, and the frame pointer.
+
+
+With all this information, I could begin the exploit.
+
+I first created a temporary fifo file, which allow data exchange between processes. This left the program running:
+
+![Executing word guesser](/Images/fstackExec.png)
+
+
+From a different terminal, I used echo to send a payload to the fifo file. Because I was using the stack protection mode, I had to bypass the canary if I wanted to access the success message. To do this, the payload had to contain the amount of bytes between the canary and the buffer, the canary's contents, and the desired return address (success).
+
+This was the result. As can be observed, the canary remained the same, yet I was able to obtain the success message:
+
+![Exploit result](/Images/guessed.png)
+
+* The line under "Guess the word" was added in the code to visualize the frame pointer's address, so I didn't write anything directly to the program.
+
+
+This was compiled with the ```-fno-stack-protector``` flag, and we can observe how the frame changes after the overflow, which is something the canary tries to prevent:
+
+![Without stack protector](/Images/fno-stackExec.png)
+
+
   ### - Patching the vulnerability
-  
+
+In order to patch this vulnerability, I used ```fgets()``` instead of ```gets()```. This function actually validates that the input has the size it's supposed to.
+
+Now it doesn't matter which input is sent; it'll only read up to the predefined number of bytes.
+
+![Patched Output](/Images/patched.png)
+
+I also compiled with the stack protection flag so it has extra validation.
+
+
 ## How to prevent
+
+To prevent this vulnerability from being exploited, the first thing to do is ensuring every accepted input has clear limits regarding size and type of data (the latter to prevent other attacks such as injections). A
+
+Avoiding the use of functions that don't check inputs (like ```gets()```) is also relevant.
+
 
 ## Conclusions
 
 With this exercise I learned how the compiler manages memory, how buffer overflows work, and the danger they pose.
 
 Knowing about this vulnerability and how it can be exploited is relevant because it'll help me recognize more easily when it is occurring (or when there's a script that performs this type of attack) so that it can be mitigated/stopped before it causes damage. It is also useful to know when developing scripts so we can implement safety measures.
+
 
 ## Sources
 
