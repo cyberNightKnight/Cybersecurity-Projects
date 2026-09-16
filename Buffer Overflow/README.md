@@ -31,6 +31,10 @@ While the canary mitigates this vulnerability, it's still not entirely safe, as 
 
 ## Conclusions
 
+With this exercise I learned how the compiler manages memory, how buffer overflows work, and the danger they pose.
+
+Knowing about this vulnerability and how it can be exploited is relevant because it'll help me recognize more easily when it is occurring (or when there's a script that performs this type of attack) so that it can be mitigated/stopped before it causes damage. It is also useful to know when developing scripts so we can implement safety measures.
+
 ## Sources
 
 - Oliveira, D. M. (2026b). Heavy Wizardry 101: Shellcodes, Backdoors, Droppers, and Worms. No Starch Press.
