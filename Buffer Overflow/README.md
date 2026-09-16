@@ -23,11 +23,15 @@ Before jumping to the walkthrough, a concept that's relevant to understand is th
 While the canary mitigates this vulnerability, it's still not entirely safe, as I'll demonstrate in the next section.
 
 ## Basic Buffer Overflow
+
   ### - Vulnerable code
+
+I generated a basic script in C that asks the user to guess a word. If it is correct, the program congratulates the user; if not, it tells the user to try again.
+  
   ### - Exploit flowchart
   ### - Patching the vulnerability
   
-## How to prevent these types of attacks
+## How to prevent
 
 ## Conclusions
 
