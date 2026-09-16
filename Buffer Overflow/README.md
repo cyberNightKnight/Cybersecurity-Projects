@@ -95,26 +95,26 @@ When a function is called, the first things the compiler does is copy the return
 
 In ```compareWord```'s case, the stack separated 48 bytes of memory (0x30 in hexadecimal):
 
-  ![Prologue](/Images/prologue.png)
+  ![Prologue](Images/prologue.png)
 
 The first three lines of this image show what I described a couple paragraphs ago. The fourth line is the canary being generated.
 
 This canary is later stored at rbp-0x08, where rbp is the frame pointer, which doesn't change throughout the execution. The reason it's subtracting is that in x86_64 processors, memory is filled downwards (from higher memory to lower), so the canary would be 0x08 positions lower than the frame pointer. This is relevant because we're talking about dynamic memory, meaning each execution will result in different memory addresses, so knowing an object's relative position is useful to pinpoint its exact location during each execution.
 
-![Canary and Buffer](/Images/canaryAndBuff.png)
+![Canary and Buffer](Images/canaryAndBuff.png)
 
 In the third line, the buffer is being declared.
 
 
 To find out the distance between the canary and the buffer, I went to the area where ```gets``` was being called and noticed the address that was being calculated for the buffer at rbp-0x12. 
 
-![Buffer address](/Images/bufferAddr.png)
+![Buffer address](Images/bufferAddr.png)
 
 To calculate the canary's distance to the buffer, I subtracted their distance to rbp: 0x12 - 0x08 = 18 bytes - 8 bytes = 10 or 0xa.
 
 This is an oversimplified view of how the stack looks:
 
-![Stack doigram](/Images/stackDiagram.png)
+![Stack doigram](Images/stackDiagram.png)
 
 
 Additionally, I added some code to the C program in order to visualize the current execution'e addresses for ```success()```, the canary, and the frame pointer.
@@ -124,21 +124,21 @@ With all this information, I could begin the exploit.
 
 I first created a temporary fifo file, which allow data exchange between processes. This left the program running:
 
-![Executing word guesser](/Images/fstackExec.png)
+![Executing word guesser](Images/fstackExec.png)
 
 
 From a different terminal, I used echo to send a payload to the fifo file. Because I was using the stack protection mode, I had to bypass the canary if I wanted to access the success message. To do this, the payload had to contain the amount of bytes between the canary and the buffer, the canary's contents, and the desired return address (success).
 
 This was the result. As can be observed, the canary remained the same, yet I was able to obtain the success message:
 
-![Exploit result](/Images/guessed.png)
+![Exploit result](Images/guessed.png)
 
 * The line under "Guess the word" was added in the code to visualize the frame pointer's address, so I didn't write anything directly to the program.
 
 
 This was compiled with the ```-fno-stack-protector``` flag, and we can observe how the frame changes after the overflow, which is something the canary tries to prevent:
 
-![Without stack protector](/Images/fno-stackExec.png)
+![Without stack protector](Images/fno-stackExec.png)
 
 
   ### - Patching the vulnerability
@@ -147,7 +147,7 @@ In order to patch this vulnerability, I used ```fgets()``` instead of ```gets()`
 
 Now it doesn't matter which input is sent; it'll only read up to the predefined number of bytes.
 
-![Patched Output](/Images/patched.png)
+![Patched Output](Images/patched.png)
 
 I also compiled with the stack protection flag so it has extra validation.
 
