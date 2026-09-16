@@ -27,6 +27,12 @@ While the canary mitigates this vulnerability, it's still not entirely safe, as 
   ### - Vulnerable code
 
 I generated a basic script in C that asks the user to guess a word. If it is correct, the program congratulates the user; if not, it tells the user to try again.
+
+``` c
+
+#include <>
+
+```
   
   ### - Exploit flowchart
   ### - Patching the vulnerability
