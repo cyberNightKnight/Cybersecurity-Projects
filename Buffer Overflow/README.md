@@ -1,6 +1,6 @@
 # Buffer Overflow
 
-#### _** Disclaimer: the purpose of this document is to show what I learned regarding buffer overflows in order to understand them and be capable of defending against them. This document doesn't contain the exploit**_
+#### _** Disclaimer: the purpose of this document is to show what I learned regarding buffer overflows in order to understand them and be capable of defending against them. This document doesn't contain any exploits**_
 
 ## What is a buffer overflow?
 
