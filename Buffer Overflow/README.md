@@ -76,7 +76,7 @@ int main(int argc, char *argv[]){
 ```
 In order to make it vulnerable, I used the ```gets()``` function, which doesn't validate the input size before storing it. Given this vulnerability, this function is actually deprecated in newer C versions, and even in the older version I used, compiling it issued the following warning:
 
-  ![Implicit declaration warning](/Images/implicitDecWarn.png)
+  ![Implicit declaration warning](Images/implicitDecWarn.png)
 
 In order to carry out this exercise: 
   -  Compilation.- ```gcc```; I particularly used the flag for executing with stack protection (```--fstack-protector```), which terminates the process with an error if it detects a buffer overflow
