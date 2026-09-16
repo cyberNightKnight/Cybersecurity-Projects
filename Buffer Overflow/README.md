@@ -20,7 +20,7 @@ With this in mind, if a buffer overload were to occur and the attacker has knowl
 
 Before jumping to the walkthrough, a concept that's relevant to understand is the __canary__. In order to try mitigating this vulnerability, some compilers allow compilation using stack protection. What this does is randomly separate a memory address and save it before the buffer limits (on architectures like x86_64 where the stack grows downwards, the canary would be at a higher position). Before the function ends, the compiler checks this memory address and compares it to the saved one. If they're different, the function is terminated.
 
-While the canary mitigates this vulnerability, it's still not entirely safe, as I'll demonstrate in the next area.
+While the canary mitigates this vulnerability, it's still not entirely safe, as I'll demonstrate in the next section.
 
 ## Basic Buffer Overflow
   ### - Vulnerable code
